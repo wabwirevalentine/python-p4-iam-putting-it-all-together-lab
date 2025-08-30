@@ -79,14 +79,16 @@ class Logout(Resource):
 
 class RecipeIndex(Resource):
     def get(self):
-        if 'user_id' not in session:
+        user_id = session.get('user_id')
+        if not user_id:  # Check if user_id doesn't exist or is falsy (None, 0, etc.)
             return {'message': 'Not logged in'}, 401
 
         recipes = Recipe.query.all()
         return [recipe.to_dict() for recipe in recipes], 200
 
     def post(self):
-        if 'user_id' not in session:
+        user_id = session.get('user_id')
+        if not user_id:  # Check if user_id doesn't exist or is falsy
             return {'message': 'Not logged in'}, 401
 
         data = request.get_json()
@@ -95,14 +97,13 @@ class RecipeIndex(Resource):
                 title=data['title'],
                 instructions=data['instructions'],
                 minutes_to_complete=data['minutes_to_complete'],
-                user_id=session['user_id']
+                user_id=user_id
             )
             db.session.add(recipe)
             db.session.commit()
             return recipe.to_dict(), 201
         except:
             return {'message': 'Invalid recipe data'}, 422
-
 
 api.add_resource(Signup, '/signup', endpoint='signup')
 api.add_resource(CheckSession, '/check_session', endpoint='check_session')
